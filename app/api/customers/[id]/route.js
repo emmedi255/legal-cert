@@ -99,7 +99,7 @@ export async function PUT(req, context) {
     const authUpdate = {};
 
     if (email) authUpdate.email = email;
-    if (password && password.length >= 12) {
+    if (password) {
       authUpdate.password = password;
     }
 
