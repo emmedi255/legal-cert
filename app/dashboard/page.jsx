@@ -5,7 +5,7 @@ import { useUser } from "../context/UserContext";
 import { useCondomini } from "../context/CondominiContext";
 import { FileText, FileSpreadsheet, LogOut, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { DashboardLayout } from "../components/DashboardLayout";
+import DashboardLayout from "../components/DashboardLayout";
 
 export default function Dashboard() {
   const [search, setSearch] = useState("");
