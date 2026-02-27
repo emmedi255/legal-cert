@@ -7,6 +7,8 @@ import DashboardLayout from "../components/DashboardLayout";
 
 export default function Signup() {
   const copyCredentials = async () => {
+    if (!form.email || !form.password) return;
+
     const text = `Credenziali di accesso
 
 Email: ${form.email}
@@ -15,9 +17,13 @@ Password: ${form.password}
 
     try {
       await navigator.clipboard.writeText(text);
-      alert("Credenziali copiate negli appunti");
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
     } catch (err) {
-      alert("Errore durante la copia");
+      console.error("Errore nella copia:", err);
     }
   };
   const router = useRouter();
@@ -59,6 +65,7 @@ Password: ${form.password}
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // 🔑 GENERATORE PASSWORD SICURA
   const generatePassword = () => {
@@ -402,6 +409,17 @@ Password: ${form.password}
                 </p>
               )}
               <div className="flex flex-col gap-3 mt-6">
+                {form.password && (
+                  <button
+                    onClick={copyCredentials}
+                    className="w-full bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-xl font-semibold transition"
+                  >
+                    {copied
+                      ? "✅ Credenziali copiate!"
+                      : "📋 Copia credenziali"}
+                  </button>
+                )}
+
                 <button
                   onClick={() => router.push("/condo-managers")}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition"
