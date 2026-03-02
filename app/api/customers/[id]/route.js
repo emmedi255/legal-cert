@@ -51,13 +51,6 @@ export async function DELETE(req, { params }) {
 
     if (documentsError) throw new Error(documentsError.message);
 
-    const { error: customerError } = await supabase
-      .from("profiles")
-      .delete()
-      .eq("id", id);
-
-    if (customerError) throw new Error(customerError.message);
-
     // 2️⃣ elimina il profilo dalla tabella "profiles"
     const { error: profileError } = await supabase
       .from("profiles")

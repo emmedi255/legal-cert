@@ -56,6 +56,7 @@ Password: ${form.password}
     pr_studio: "",
     codice_univoco: "",
     password_expiration: defaultExpiration.toISOString().slice(0, 10), // YYYY-MM-DD
+    condomini_max: 0,
   });
 
   const [copySedeOperativa, setCopySedeOperativa] = useState(false);
@@ -283,6 +284,28 @@ Password: ${form.password}
                     className="px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                   />
                 ))}
+              </div>
+            </section>
+
+            {/* === STUDIO === */}
+            <section>
+              <h2 className="text-2xl font-bold mb-6 border-b-2 border-purple-200 pb-2">
+                Numero condomini ammessi
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-8 gap-4">
+                <input
+                  type="number"
+                  name="condomini_max"
+                  min={1}
+                  value={form.condomini_max}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      condomini_max: Number(e.target.value),
+                    }))
+                  }
+                  className="px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
               </div>
             </section>
 

@@ -26,6 +26,23 @@ const normalizeNumber = (v) => {
 export async function POST(req) {
   try {
     const { user, form, condominioId } = await req.json();
+
+    if (!condominioId) {
+      const { data: condomini, error: errorCondomini } = await supabase
+        .from("condomini")
+        .select("*")
+        .eq("user_id", user.id);
+
+      if (condomini) {
+        if (condomini.length >= user.condomini_max) {
+          return NextResponse.json(
+            { error: "Numero condomini Massimo Raggiunti" },
+            { status: 400 },
+          );
+        }
+      }
+    }
+
     const GENERAL_FORNITORE_ID = "11111111-1111-1111-1111-111111111111";
     const condominioRow = {
       user_id: user.id,

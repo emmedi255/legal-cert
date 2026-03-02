@@ -36,7 +36,6 @@ export async function POST(req) {
       .select("*")
       .eq("id", data.user.id)
       .single();
-    console.log("USER", userProfile);
 
     if (userProfile.data.password_expiration) {
       const now = new Date();

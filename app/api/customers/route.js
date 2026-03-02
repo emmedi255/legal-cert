@@ -24,8 +24,8 @@ export async function GET() {
 
     // 2️⃣ Aziende
     const { data: companies } = await supabase
-      .from("customer_data")
-      .select("user_id, company")
+      .from("condomini")
+      .select("*")
       .in("user_id", clientIds);
 
     const companyMap = Object.fromEntries(
@@ -53,11 +53,18 @@ export async function GET() {
             };
           }),
         );
+        // ✅ Lista condomini per questo utente
+        const userCondomini = (companies || []).filter(
+          (c) => c.user_id === client.id,
+        );
 
         return {
           ...client,
           company: companyMap[client.id] || null,
+          company: companyMap[client.id] || null,
           documents: documentsWithSignedUrls,
+          condomini: userCondomini, // <- tutta la lista dei condomini
+          condomini_count: userCondomini.length, // <- opzionale, per mostrare 2/3
         };
       }),
     );

@@ -34,6 +34,28 @@ export async function POST(req) {
       );
     }
 
+    if (!condominioId) {
+      const { data: max, error: profiles } = await supabase
+        .from("profiles")
+        .select("condomini_max")
+        .eq("id", userId)
+        .single();
+
+      const { data, error } = await supabase
+        .from("condomini")
+        .select("*")
+        .eq("user_id", userId);
+
+      if (data) {
+        if (data.length >= max.condomini_max) {
+          return NextResponse.json(
+            { error: "Numero condomini Massimo Raggiunti" },
+            { status: 400 },
+          );
+        }
+      }
+    }
+
     // Costruzione oggetto condominio con optional chaining
     const condominioRow = {
       user_id: userId,

@@ -179,7 +179,7 @@ export default function EditAdminModal({ adminId, onClose }) {
                   key={key}
                   name={key}
                   placeholder={label}
-                  value={form[key]}
+                  value={form[key] ?? ""}
                   onChange={handleChange}
                   className="px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required={["name", "email"].includes(key)}
@@ -319,6 +319,28 @@ export default function EditAdminModal({ adminId, onClose }) {
                   className="px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                 />
               ))}
+            </div>
+          </section>
+
+          {/* === STUDIO === */}
+          <section>
+            <h2 className="text-2xl font-bold mb-6 border-b-2 border-purple-200 pb-2">
+              Numero condomini ammessi
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-8 gap-4">
+              <input
+                type="number"
+                name="condomini_max"
+                min={1}
+                value={form.condomini_max}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    condomini_max: Number(e.target.value),
+                  }))
+                }
+                className="px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
             </div>
           </section>
 

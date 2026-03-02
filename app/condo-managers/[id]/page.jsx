@@ -21,7 +21,6 @@ export default function AdminClientDashboard() {
     async function fetchData() {
       try {
         setLoading(true);
-        console.log("id cliente:", id);
         // fetch dati cliente
         const resUser = await fetch(`/api/profile/${id}`);
         const dataUser = await resUser.json();
@@ -117,6 +116,9 @@ export default function AdminClientDashboard() {
                 </p>
                 <p className="text-xs text-gray-400">
                   CF: {condominio.cf_condominio}
+                </p>
+                <p className="text-xs text-gray-400">
+                  condomini : {condominio.condomini_max}
                 </p>
 
                 {condominio.documents?.length > 0 ? (

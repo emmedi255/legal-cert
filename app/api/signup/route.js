@@ -37,6 +37,7 @@ export async function POST(req) {
       pr_studio,
       codice_univoco,
       password_expiration,
+      condomini_max,
     } = formData;
 
     // Crea utente in Supabase Auth
@@ -88,6 +89,7 @@ export async function POST(req) {
         role: "CLIENTE",
 
         password_expiration,
+        condomini_max,
       },
     ]);
 

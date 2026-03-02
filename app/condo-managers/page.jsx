@@ -81,7 +81,7 @@ export default function ClientsPage() {
         {loading ? (
           <div className="loader w-16 h-16 border-4 items-center border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         ) : (
-          <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-6">
             {filteredClients.map((c) => {
               const isActive = new Date(c.password_expiration) >= new Date();
 
@@ -137,6 +137,17 @@ export default function ClientsPage() {
                         }`}
                       >
                         Data validità: {c.password_expiration}
+                      </p>
+                    </div>
+                    <div>
+                      <p
+                        className={`text-xs px-2 py-0.5 rounded-md inline-block max-w-full truncate ${
+                          isActive
+                            ? "text-slate-600 bg-slate-100"
+                            : "text-red-700 bg-red-100"
+                        }`}
+                      >
+                        condomini: {c.condomini_count}/{c.condomini_max}
                       </p>
                     </div>
                   </div>

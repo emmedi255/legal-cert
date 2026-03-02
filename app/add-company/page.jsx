@@ -341,20 +341,28 @@ export default function DataForm({
     setLoadingBozza(true);
     setError("");
     setSuccess("");
+
     try {
       const res = await fetch("/api/save-condominio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, form, condominioId }),
       });
+
       const data = await res.json();
-      if (data.error) setError(data.error);
-      else setSuccess("Modulo salvato come bozza!");
+
+      if (!res.ok) {
+        // ❌ errore → resto nella pagina
+        setError(data.error || "Errore durante il salvataggio");
+        return;
+      }
+
+      // ✅ successo → redirect
+      router.push("/dashboard");
     } catch {
       setError("Errore durante il salvataggio");
     } finally {
       setLoadingBozza(false);
-      router.push("/dashboard");
     }
   };
 
@@ -376,7 +384,9 @@ export default function DataForm({
       });
       const submitData = await submitRes.json();
       if (submitData.error) {
-        throw new Error(submitData.error);
+        setCreatingPdf(false);
+        setError(`${submitData.error}`);
+        return;
       }
       setSuccess("✅ Modulo salvato con successo!\n");
       setTimeout(() => router.push("/dashboard"), 3000);
