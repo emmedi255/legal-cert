@@ -6,11 +6,11 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "postinstall": "playwright install chromium"
+    "lint": "eslint"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",
+    "@sparticuz/chromium-min": "^143.0.4",
     "@supabase/supabase-js": "^2.89.0",
     "clsx": "^2.1.1",
     "exceljs": "^4.4.0",
@@ -18,7 +18,8 @@
     "next": "16.1.0",
     "nodemailer": "^7.0.11",
     "pdfkit": "^0.17.2",
-    "playwright": "^1.58.2",
+    "puppeteer": "^24.37.5",
+    "puppeteer-core": "^24.37.5",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
