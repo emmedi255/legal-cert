@@ -4,13 +4,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "../context/UserContext";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "../components/DashboardLayout";
-import {
-  Trash2,
-  PlusCircle,
-  RefreshCw,
-  Pencil,
-  ArrowRight,
-} from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 import EditAdminModal from "../components/EditAdminModal";
 export default function ClientsPage() {
   const { user } = useUser();
