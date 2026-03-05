@@ -209,7 +209,7 @@ export async function POST(req) {
             formData: form,
           });
 
-          const fornitorePath = `pdfs/${condominio_Id}-${fornitore.fornitore_id}_nomina-responsabile-esterno-${fornitore.nome}-${fornitore.cognome}.pdf`;
+          const fornitorePath = `pdfs/NOMINA_RESPONSABILE_ESTERNO_${fornitore.nome}_${fornitore.cognome}-${condominio_Id}${fornitore.fornitore_id}.pdf`;
 
           const { data: data, error: docError } = await supabase
             .from("documents")
@@ -271,7 +271,7 @@ export async function POST(req) {
       formData: form,
     });
 
-    const path = `pdfs/${condominio_Id}_informativa-privacy.pdf`;
+    const path = `pdfs/INFORMATIVA_PRIVACY-${condominio_Id}.pdf`;
 
     const { data, error } = await supabase.from("documents").upsert(
       [
@@ -295,7 +295,7 @@ export async function POST(req) {
       formData: form,
     });
 
-    const pathNomina = `pdfs/${condominio_Id}_nomina-amministratore.pdf`;
+    const pathNomina = `pdfs/NOMINA_AMMINISTRATORE-${condominio_Id}.pdf`;
 
     const { dataNomina, errorNomina } = await supabase.from("documents").upsert(
       [
@@ -326,7 +326,7 @@ export async function POST(req) {
       formData: form,
     });
 
-    const pathTrattamenti = `pdfs/${condominio_Id}_registro-trattamenti-condominio.pdf`;
+    const pathTrattamenti = `pdfs/REGISTRO_TRATTAMENTI_CONDOMINIO-${condominio_Id}.pdf`;
 
     const { dataTrattamenti, errorTrattamenti } = await supabase
       .from("documents")
@@ -354,7 +354,7 @@ export async function POST(req) {
       formData: form,
     });
 
-    const pathChecklist = `pdfs/${condominio_Id}_check-list-privacy.pdf`;
+    const pathChecklist = `pdfs/CHECK_LIST_PRIVACY-${condominio_Id}.pdf`;
 
     const { data: dataChecklist, error: errorChecklist } = await supabase
       .from("documents")

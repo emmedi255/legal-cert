@@ -259,10 +259,11 @@ export default function Dashboard() {
                                   fileName =
                                     "fornitore-" +
                                     doc.file_url
-                                      .split("_")
-                                      .pop()
-                                      .replace(".pdf", "")
-                                      .split("nomina-responsabile-esterno-")[1];
+                                      .split("/")
+                                      .pop() // prende solo il nome del file
+                                      .replace(".pdf", "") // rimuove l'estensione
+                                      .split("NOMINA_RESPONSABILE_ESTERNO_")[1] // prende solo la parte dopo il prefisso
+                                      .split("-")[0]; // prende solo la parte prima dell'ID lungo
                                 }
 
                                 return (
