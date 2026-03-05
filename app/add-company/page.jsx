@@ -502,7 +502,7 @@ export default function DataForm({
                 placeholder="indirizzo"
                 value={form.intestazione.condominio_indirizzo ?? ""}
                 required
-                pattern="^(Via|Viale|Corso|Piazza|Piazzale|Largo)\s+([a-zA-Zàèìòù\s']{3,})\s+(\d+[a-zA-Z]?)(?:\s*/\s*[a-zA-Z0-9]{1,3})?$"
+                pattern="^(Via|Viale|Corso|Piazza|Piazzale|Largo)\s+([a-zA-Zàèìòù\s']{3,})[,\s]+(\d+[a-zA-Z]?)(?:\s*/\s*[a-zA-Z0-9]{1,3})?$"
                 title="rispettare formato indirizzo es. Via Roma,8"
                 onChange={(e) =>
                   update(

@@ -3,7 +3,14 @@
 import { useEffect, useState } from "react";
 import { useUser } from "../context/UserContext";
 import { useCondomini } from "../context/CondominiContext";
-import { FileText, FileSpreadsheet, LogOut, Trash2 } from "lucide-react";
+import {
+  FileText,
+  FileSpreadsheet,
+  LogOut,
+  Trash2,
+  ChevronRight,
+  Pencil,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "../components/DashboardLayout";
 
@@ -14,6 +21,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [openDocs, setOpenDocs] = useState(null);
 
   useEffect(() => {
     if (!user) {
@@ -118,7 +126,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen justify-center bg-gradient-to-b from-blue-100 to-white font-sans">
       <DashboardLayout>
-        <div className="p-6 md:p-10">
+        <div className="">
           <input
             placeholder="Cerca condominio..."
             value={search}
@@ -137,79 +145,148 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
+              <div className="hidden sm:flex items-center text-xs font-semibold text-gray-500 border-b border-gray-200 pb-2 mb-3">
+                <span className="w-12"></span> {/* spazio per freccia */}
+                <span className="flex-1 min-w-[120px]">CONDOMINIO</span>
+                <span className="flex-1 min-w-[150px]">INDIRIZZO</span>
+                <span className="flex-1 min-w-[130px]">CODICE FISCALE</span>
+                <span className="w-24 text-right">AZIONI</span>
+              </div>
               {filteredCondomini.length === 0 ? (
                 <p className="text-gray-400 text-center mt-10">
                   Nessun risultato trovato
                 </p>
               ) : (
-                <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-3 gap-6">
+                <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-1 ">
                   {filteredCondomini.map((condominio) => (
                     <li
                       key={condominio.condominio_id}
-                      onClick={() =>
-                        router.push(`/condomini/${condominio.condominio_id}`)
-                      }
-                      className="cursor-pointer p-5 bg-white rounded-xl shadow hover:shadow-md transition border relative"
+                      className="w-full relative p-4  hover:bg-gray-100 transition border-b-2 "
                     >
-                      <button
-                        onClick={(e) => {
-                          // ✅ Aggiungi event
-                          e.stopPropagation(); // ✅ Blocca navigazione
-                          handleDeleteCondominio(condominio.condominio_id); // ✅ Funzione corretta
-                        }}
-                        title="Elimina condominio"
-                        className="absolute top-3 right-3 p-2 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 transition z-10"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-
-                      <p className="font-semibold text-gray-700 text-lg">
-                        {condominio.condominio}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {condominio.condominio_indirizzo}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {condominio.citta}, {condominio.provincia} -{" "}
-                        {condominio.cap}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        CF: {condominio.cf_condominio}
-                      </p>
-                      {/* ICONA DOCUMENTI */}
-                      {condominio.documents?.length > 0 ? (
-                        <ul className="flex flex-col gap-2 mt-3">
-                          {condominio.documents.map((doc, index) => {
-                            const key =
-                              doc.id ||
-                              `${condominio.condominio_id}-doc-${index}`;
-                            let fileName = doc.document_key;
-                            {
-                              doc.document_key === "nomina-responsabile-esterno"
-                                ? (fileName = doc.file_url.split("_").pop())
-                                : fileName;
-                            }
-                            return (
-                              <li key={key}>
-                                <a
-                                  href={doc.signedUrl || "#"}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-3 text-gray-600 text-xs hover:underline hover:opacity-80 cursor-pointer transition"
-                                  title={fileName}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  {renderDocumentIcon(doc.type)}
-                                  {fileName}
-                                </a>
-                              </li>
+                      <div className="flex items-center justify-between gap-4">
+                        {/* FRECCIA */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenDocs(
+                              openDocs === condominio.condominio_id
+                                ? null
+                                : condominio.condominio_id,
                             );
-                          })}
-                        </ul>
-                      ) : (
-                        <p className="text-gray-400 text-xs mt-2">
-                          Nessun documento
-                        </p>
+                          }}
+                          className="text-gray-500 hover:text-gray-800"
+                        >
+                          <ChevronRight
+                            className={`transition ${
+                              openDocs === condominio.condominio_id
+                                ? "rotate-90"
+                                : ""
+                            }`}
+                            size={18}
+                          />
+                        </button>
+
+                        {/* DATI CONDOMINIO */}
+                        <div
+                          className="flex-1 cursor-pointer flex flex-wrap items-center text-sm gap-2 md:gap-4"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenDocs(
+                              openDocs === condominio.condominio_id
+                                ? null
+                                : condominio.condominio_id,
+                            );
+                          }}
+                        >
+                          <span className="flex-1 min-w-[120px] font-semibold text-gray-700">
+                            {condominio.condominio}
+                          </span>
+
+                          <span className="flex-1 min-w-[150px] text-gray-500">
+                            {condominio.condominio_indirizzo} {condominio.cap}{" "}
+                            {condominio.citta}{" "}
+                            {condominio?.provincia
+                              ? "(" + condominio.provincia + ")"
+                              : ""}
+                          </span>
+
+                          <span className="flex-1 min-w-[130px] text-gray-400">
+                            {condominio.cf_condominio}
+                          </span>
+
+                          {/* BOTTONI */}
+                          <div className="flex items-center gap-2 mt-2 md:mt-0">
+                            <button
+                              onClick={() =>
+                                router.push(
+                                  `/condomini/${condominio.condominio_id}`,
+                                )
+                              }
+                              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full"
+                            >
+                              <Pencil size={18} />
+                            </button>
+
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteCondominio(
+                                  condominio.condominio_id,
+                                );
+                              }}
+                              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      {openDocs === condominio.condominio_id && (
+                        <div className="top-full  p-4 mt-2 z-10 pl-8  p-4">
+                          {condominio.documents?.length > 0 ? (
+                            <ul className="flex flex-col gap-2">
+                              {condominio.documents.map((doc, index) => {
+                                const key =
+                                  doc.id ||
+                                  `${condominio.condominio_id}-doc-${index}`;
+
+                                let fileName = doc.document_key;
+
+                                if (
+                                  doc.document_key ===
+                                  "nomina-responsabile-esterno"
+                                ) {
+                                  fileName =
+                                    "fornitore-" +
+                                    doc.file_url
+                                      .split("_")
+                                      .pop()
+                                      .replace(".pdf", "")
+                                      .split("nomina-responsabile-esterno-")[1];
+                                }
+
+                                return (
+                                  <li key={key}>
+                                    <a
+                                      href={doc.signedUrl || "#"}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="flex items-center gap-2 text-sm text-gray-600 hover:underline"
+                                    >
+                                      {renderDocumentIcon(doc.type)}
+                                      {fileName}
+                                    </a>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          ) : (
+                            <p className="text-sm text-gray-400 italic">
+                              Nessun documento censito
+                            </p>
+                          )}
+                        </div>
                       )}
                     </li>
                   ))}
