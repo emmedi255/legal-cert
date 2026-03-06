@@ -30,10 +30,6 @@ export default function Header({ onToggle, sidebarOpen }) {
         {/* ── Right side ── */}
         <div className="flex items-center gap-2">
           {/* Badge ambiente — opzionale, rimuovi se non serve */}
-          <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 rounded-full px-2.5 py-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Online
-          </span>
 
           {/* Hamburger mobile */}
           <button

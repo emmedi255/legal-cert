@@ -413,7 +413,6 @@ export default function DataForm({
       ].forEach((k) => update(["sezione03", "elettronica", type, k], false));
       update(["sezione03", "elettronica", type, "altro"], "");
     });
-    
   };
 
   const saveDraft = async () => {
@@ -928,20 +927,20 @@ export default function DataForm({
                       : "border-gray-300"
                   }`}
                 >
-                  {(form.sezione02.isAltro || !!form.sezione02.altro)&&(
-                      <CheckCircle2
-                        size={10}
-                        className="text-white"
-                        strokeWidth={3}
-                      />,
-                    )}
+                  {(form.sezione02.isAltro || !!form.sezione02.altro) && (
+                    <CheckCircle2
+                      size={10}
+                      className="text-white"
+                      strokeWidth={3}
+                    />
+                  )}
                 </div>
                 <span className="text-sm font-medium">Altro</span>
               </button>
-              {(form.sezione02.isAltro || !! form.sezione02.altro) && (
+              {(form.sezione02.isAltro || !!form.sezione02.altro) && (
                 <InlineInput
                   value={form.sezione02.altro}
-                   onChange={(e) => {
+                  onChange={(e) => {
                     update(["sezione02", "altro"], e.target.value);
                     if (!e.target.value)
                       update(["sezione02", "isAltro"], false);
@@ -972,13 +971,12 @@ export default function DataForm({
                 <button
                   type="button"
                   onClick={() => {
-                  const v = !form.sezione03.elettronica.enabled;
-                  update(["sezione03", "elettronica", "enabled"], v);
+                    const v = !form.sezione03.elettronica.enabled;
+                    update(["sezione03", "elettronica", "enabled"], v);
 
-                  // ✅ Resetta tutti i campi interni
-                  if (!v) resetSezione03();
+                    // ✅ Resetta tutti i campi interni
+                    if (!v) resetSezione03();
                   }}
-
                   className="w-full flex items-center justify-between"
                 >
                   <div className="flex items-center gap-2.5">
@@ -1160,19 +1158,22 @@ export default function DataForm({
                               )
                             }
                             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                              form.sezione03.elettronica.serverLocale.isAltro || !!form.sezione03.elettronica.serverLocale.altro
+                              form.sezione03.elettronica.serverLocale.isAltro ||
+                              !!form.sezione03.elettronica.serverLocale.altro
                                 ? "bg-blue-600 border-blue-600 text-white"
                                 : "bg-white border-gray-200 hover:border-blue-300 text-gray-700"
                             }`}
                           >
                             Altro
                           </button>
-                          {(form.sezione03.elettronica.serverLocale.isAltro||!!form.sezione03.elettronica.serverLocale.altro)  && (
+                          {(form.sezione03.elettronica.serverLocale.isAltro ||
+                            !!form.sezione03.elettronica.serverLocale
+                              .altro) && (
                             <InlineInput
                               value={
                                 form.sezione03.elettronica.serverLocale.altro
                               }
-                              onChange={(e) =>{
+                              onChange={(e) => {
                                 update(
                                   [
                                     "sezione03",
@@ -1181,16 +1182,18 @@ export default function DataForm({
                                     "altro",
                                   ],
                                   e.target.value,
-                                  
                                 );
                                 if (!e.target.value)
-                                  update([                                    
-                                    "sezione03",
-                                    "elettronica",
-                                    "serverLocale",
-                                    "isAltro"],false)
-                                }
-                              }
+                                  update(
+                                    [
+                                      "sezione03",
+                                      "elettronica",
+                                      "serverLocale",
+                                      "isAltro",
+                                    ],
+                                    false,
+                                  );
+                              }}
                               placeholder="Specificare..."
                               className="text-xs py-1.5 w-36"
                             />
@@ -1325,17 +1328,19 @@ export default function DataForm({
                               )
                             }
                             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                              form.sezione03.elettronica.cloud.isAltro || !! form.sezione03.elettronica.cloud.altro 
+                              form.sezione03.elettronica.cloud.isAltro ||
+                              !!form.sezione03.elettronica.cloud.altro
                                 ? "bg-emerald-600 border-emerald-600 text-white"
                                 : "bg-white border-gray-200 hover:border-emerald-300 text-gray-700"
                             }`}
                           >
                             Altro
                           </button>
-                          {(form.sezione03.elettronica.cloud.isAltro || !!form.sezione03.elettronica.cloud.altro) && (
+                          {(form.sezione03.elettronica.cloud.isAltro ||
+                            !!form.sezione03.elettronica.cloud.altro) && (
                             <InlineInput
                               value={form.sezione03.elettronica.cloud.altro}
-                              onChange={(e) =>{
+                              onChange={(e) => {
                                 update(
                                   [
                                     "sezione03",
@@ -1345,15 +1350,16 @@ export default function DataForm({
                                   ],
                                   e.target.value,
                                 );
-                                if(!e.target.value){
-                                  [
+                                if (!e.target.value) {
+                                  ([
                                     "sezione03",
                                     "elettronica",
                                     "cloud",
                                     "isAltro",
-                                  ],false
-                                }}
-                              }
+                                  ],
+                                    false);
+                                }
+                              }}
                               placeholder="Specificare..."
                               className="text-xs py-1.5 w-36"
                             />
@@ -1374,20 +1380,20 @@ export default function DataForm({
                 }`}
               >
                 <button
-  type="button"
-  onClick={() => {
-    const v = !form.sezione03.cartacea.enabled;
-    update(["sezione03", "cartacea", "enabled"], v);
+                  type="button"
+                  onClick={() => {
+                    const v = !form.sezione03.cartacea.enabled;
+                    update(["sezione03", "cartacea", "enabled"], v);
 
-    // ✅ Resetta SEMPRE i campi interni quando si disabilita
-    if (!v) {
-      update(["sezione03", "cartacea", "archivio"], false);
-      update(["sezione03", "cartacea", "isAltro"], false);
-      update(["sezione03", "cartacea", "altro"], "");
-    }
-  }}
-  className="w-full flex items-center justify-between"
->
+                    // ✅ Resetta SEMPRE i campi interni quando si disabilita
+                    if (!v) {
+                      update(["sezione03", "cartacea", "archivio"], false);
+                      update(["sezione03", "cartacea", "isAltro"], false);
+                      update(["sezione03", "cartacea", "altro"], "");
+                    }
+                  }}
+                  className="w-full flex items-center justify-between"
+                >
                   <div className="flex items-center gap-2.5">
                     <div
                       className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
@@ -1452,24 +1458,29 @@ export default function DataForm({
                           )
                         }
                         className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                          form.sezione03.cartacea.isAltro||!!form.sezione03.cartacea.altro
+                          form.sezione03.cartacea.isAltro ||
+                          !!form.sezione03.cartacea.altro
                             ? "bg-amber-500 border-amber-500 text-white"
                             : "bg-white border-gray-200 hover:border-amber-300 text-gray-700"
                         }`}
                       >
                         Altro
                       </button>
-                      {(form.sezione03.cartacea.isAltro||!!form.sezione03.cartacea.altro) && (
+                      {(form.sezione03.cartacea.isAltro ||
+                        !!form.sezione03.cartacea.altro) && (
                         <InlineInput
                           value={form.sezione03.cartacea.altro}
-                          onChange={(e) =>{
+                          onChange={(e) => {
                             update(
                               ["sezione03", "cartacea", "altro"],
                               e.target.value,
                             );
-                          if(!e.target.value)
-                          update(["sezione03","cartacea","isAltro"],false)}
-                          }
+                            if (!e.target.value)
+                              update(
+                                ["sezione03", "cartacea", "isAltro"],
+                                false,
+                              );
+                          }}
                           placeholder="Specificare..."
                           className="text-xs py-1.5 w-40"
                         />
@@ -1509,14 +1520,16 @@ export default function DataForm({
                       )
                     }
                     className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                      form.sezione03.sicurezza.isAltro|| !!form.sezione03.sicurezza.altro
+                      form.sezione03.sicurezza.isAltro ||
+                      !!form.sezione03.sicurezza.altro
                         ? "bg-slate-700 border-slate-700 text-white"
                         : "bg-white border-gray-200 hover:border-slate-300 text-gray-700"
                     }`}
                   >
                     Altro
                   </button>
-                  {(form.sezione03.sicurezza.isAltro || !!form.sezione03.sicurezza.altro) && (
+                  {(form.sezione03.sicurezza.isAltro ||
+                    !!form.sezione03.sicurezza.altro) && (
                     <InlineInput
                       value={form.sezione03.sicurezza.altro}
                       onChange={(e) => {
@@ -1524,10 +1537,10 @@ export default function DataForm({
                           ["sezione03", "sicurezza", "altro"],
                           e.target.value,
                         );
-                        if(!e.target.value)
-                          update["sezione03","sicurezza","isAltro"],false
-                        }
-                      }
+                        if (!e.target.value)
+                          (update[("sezione03", "sicurezza", "isAltro")],
+                            false);
+                      }}
                       placeholder="Specificare..."
                       className="text-xs py-1.5 w-40"
                     />
@@ -1659,7 +1672,7 @@ export default function DataForm({
               >
                 <div
                   className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                    form.sezione06.isAltro ||!!form.sezione06.altro
+                    form.sezione06.isAltro || !!form.sezione06.altro
                       ? "bg-violet-600 border-violet-600"
                       : "border-gray-300"
                   }`}
@@ -1674,14 +1687,14 @@ export default function DataForm({
                 </div>
                 <span className="text-sm font-medium">Altro</span>
               </button>
-              {(form.sezione06.isAltro  || !! form.sezione06.altro) && (
+              {(form.sezione06.isAltro || !!form.sezione06.altro) && (
                 <InlineInput
                   value={form.sezione06.altro}
-                  onChange={(e) =>{
-                    update(["sezione06", "altro"], e.target.value)
-                    if(!e.target.value) update(["sezione06","isAltro"],false)
-                  }
-                }
+                  onChange={(e) => {
+                    update(["sezione06", "altro"], e.target.value);
+                    if (!e.target.value)
+                      update(["sezione06", "isAltro"], false);
+                  }}
                   placeholder="Specificare..."
                   className="w-48"
                 />
