@@ -517,6 +517,7 @@ export function FornitoriSection({
                   Annulla
                 </button>
                 <button
+                  onClick={addNewFornitore}
                   type="button"
                   disabled={saving}
                   className="flex-1 inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition shadow-md shadow-blue-500/20 disabled:opacity-60"

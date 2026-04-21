@@ -186,6 +186,7 @@ export default function DataForm({
   const [success, setSuccess] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedType, setSelectedType] = useState(null);
+  const isEdit = mode === "edit";
 
   const openAuthModal = (type) => {
     setSelectedType(type);
@@ -570,121 +571,147 @@ export default function DataForm({
             icon={Building2}
             accentColor="slate"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {/* Data */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
-                  Data
-                </label>
-                <input
-                  type="date"
-                  value={form.intestazione.data}
-                  onChange={(e) =>
-                    update(["intestazione", "data"], e.target.value)
-                  }
-                  className="px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-gray-600"
-                />
+            <fieldset disabled={mode === "edit"}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {/* Data */}
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
+                    Data
+                  </label>
+                  <input
+                    type="date"
+                    value={form.intestazione.data}
+                    onChange={(e) =>
+                      update(["intestazione", "data"], e.target.value)
+                    }
+                    className="px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm shadow-sm text-gray-600
+focus:outline-none focus:ring-2 focus:ring-blue-500
+
+disabled:bg-gray-100
+disabled:border-gray-300
+disabled:text-gray-500
+disabled:cursor-not-allowed
+disabled:shadow-none"
+                  />
+                </div>
+                {/* Condominio */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest ">
+                    Nome Condominio *
+                  </label>
+                  <InlineInput
+                    value={form.intestazione.condominio}
+                    className="disabled:bg-gray-100
+disabled:border-gray-300
+disabled:text-gray-500
+disabled:cursor-not-allowed
+disabled:shadow-none"
+                    required
+                    onChange={(e) =>
+                      update(["intestazione", "condominio"], e.target.value)
+                    }
+                    placeholder="es. Condominio Primavera"
+                  />
+                </div>
+                {/* Indirizzo */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
+                    Indirizzo *
+                  </label>
+                  <InlineInput
+                    className="disabled:bg-gray-100
+disabled:border-gray-300
+disabled:text-gray-500
+disabled:cursor-not-allowed
+disabled:shadow-none"
+                    value={form.intestazione.condominio_indirizzo}
+                    required
+                    onChange={(e) =>
+                      update(
+                        ["intestazione", "condominio_indirizzo"],
+                        e.target.value,
+                      )
+                    }
+                    placeholder="Via Roma, 8"
+                  />
+                </div>
+                {/* Città */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
+                    Città *
+                  </label>
+                  <InlineInput
+                    className="disabled:bg-gray-100
+disabled:border-gray-300
+disabled:text-gray-500
+disabled:cursor-not-allowed
+disabled:shadow-none"
+                    required
+                    value={form.intestazione.citta}
+                    onChange={(e) =>
+                      update(["intestazione", "citta"], e.target.value)
+                    }
+                    placeholder="Roma"
+                  />
+                </div>
+                {/* Provincia */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
+                    Provincia *
+                  </label>
+                  <select
+                    value={form.intestazione.provincia ?? ""}
+                    required
+                    onChange={(e) =>
+                      update(["intestazione", "provincia"], e.target.value)
+                    }
+                    className="px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Seleziona...</option>
+                    {provinceItaliane.map((p) => (
+                      <option key={p.sigla} value={p.sigla}>
+                        {p.nome} ({p.sigla})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {/* CAP */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
+                    CAP
+                  </label>
+                  <InlineInput
+                    value={form.intestazione.cap}
+                    className="disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                    onChange={(e) =>
+                      update(
+                        ["intestazione", "cap"],
+                        e.target.value.replace(/\D/g, "").slice(0, 5),
+                      )
+                    }
+                    placeholder="00100"
+                  />
+                </div>
+                {/* CF */}
+                <div className="flex flex-col gap-1.5 md:col-span-3">
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
+                    Codice Fiscale Condominio *
+                  </label>
+                  <InlineInput
+                    value={form.intestazione.cfCondominio}
+                    onChange={(e) =>
+                      update(
+                        ["intestazione", "cfCondominio"],
+                        e.target.value.toUpperCase().slice(0, 11),
+                      )
+                    }
+                    placeholder="12345678901"
+                    className="max-w-xs disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                  />
+                </div>
               </div>
-              {/* Condominio */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
-                  Nome Condominio *
-                </label>
-                <InlineInput
-                  value={form.intestazione.condominio}
-                  required
-                  onChange={(e) =>
-                    update(["intestazione", "condominio"], e.target.value)
-                  }
-                  placeholder="es. Condominio Primavera"
-                />
-              </div>
-              {/* Indirizzo */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
-                  Indirizzo *
-                </label>
-                <InlineInput
-                  value={form.intestazione.condominio_indirizzo}
-                  required
-                  onChange={(e) =>
-                    update(
-                      ["intestazione", "condominio_indirizzo"],
-                      e.target.value,
-                    )
-                  }
-                  placeholder="Via Roma, 8"
-                />
-              </div>
-              {/* Città */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
-                  Città *
-                </label>
-                <InlineInput
-                  required
-                  value={form.intestazione.citta}
-                  onChange={(e) =>
-                    update(["intestazione", "citta"], e.target.value)
-                  }
-                  placeholder="Roma"
-                />
-              </div>
-              {/* Provincia */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
-                  Provincia *
-                </label>
-                <select
-                  value={form.intestazione.provincia ?? ""}
-                  required
-                  onChange={(e) =>
-                    update(["intestazione", "provincia"], e.target.value)
-                  }
-                  className="px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-gray-600"
-                >
-                  <option value="">Seleziona...</option>
-                  {provinceItaliane.map((p) => (
-                    <option key={p.sigla} value={p.sigla}>
-                      {p.nome} ({p.sigla})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {/* CAP */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
-                  CAP
-                </label>
-                <InlineInput
-                  value={form.intestazione.cap}
-                  onChange={(e) =>
-                    update(
-                      ["intestazione", "cap"],
-                      e.target.value.replace(/\D/g, "").slice(0, 5),
-                    )
-                  }
-                  placeholder="00100"
-                />
-              </div>
-              {/* CF */}
-              <div className="flex flex-col gap-1.5 md:col-span-3">
-                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
-                  Codice Fiscale Condominio *
-                </label>
-                <InlineInput
-                  value={form.intestazione.cfCondominio}
-                  onChange={(e) =>
-                    update(
-                      ["intestazione", "cfCondominio"],
-                      e.target.value.toUpperCase().slice(0, 11),
-                    )
-                  }
-                  placeholder="12345678901"
-                  className="max-w-xs"
-                />
-              </div>
-            </div>
+            </fieldset>
           </SectionCard>
 
           {/* ── SEZ. 01 – DIPENDENTI ── */}
