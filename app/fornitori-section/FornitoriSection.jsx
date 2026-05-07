@@ -16,6 +16,7 @@ import {
   Briefcase,
   ChevronDown,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 
 /* ══════════════════════════════════════════
@@ -29,6 +30,9 @@ function ModalField({
   onChange,
   placeholder,
   required,
+  error,
+  errorMsg,
+  onBlur,
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -41,18 +45,26 @@ function ModalField({
         {Icon && (
           <Icon
             size={13}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors"
+            className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${error ? "text-red-400" : "text-gray-400 group-focus-within:text-blue-500"}`}
           />
         )}
         <input
           type="text"
           value={value ?? ""}
           onChange={(e) => onChange(field, e.target.value)}
+          onBlur={onBlur}
           placeholder={placeholder || label}
           required={required}
-          className="w-full pl-8 pr-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition shadow-sm"
+          className={`w-full pl-8 pr-3 py-2.5 bg-white border rounded-xl text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition shadow-sm ${
+            error
+              ? "border-red-400 focus:ring-red-500"
+              : "border-gray-200 focus:ring-blue-500"
+          }`}
         />
       </div>
+      {error && errorMsg && (
+        <p className="text-xs text-red-500">{errorMsg}</p>
+      )}
     </div>
   );
 }
@@ -71,7 +83,10 @@ export function FornitoriSection({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [newFornitore, setNewFornitore] = useState({
+  const [formError, setFormError] = useState("");
+  const [errors, setErrors] = useState({});
+
+  const emptyFornitore = {
     nome: "",
     cognome: "",
     ragioneSociale: "",
@@ -81,7 +96,12 @@ export function FornitoriSection({
     provincia: "",
     cf: "",
     attivita: "",
-  });
+  };
+  const [newFornitore, setNewFornitore] = useState(emptyFornitore);
+
+  const capRegex = /^\d{5}$/;
+  const cfRegex = /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/i;
+  const pivaRegex = /^\d{11}$/;
 
   useEffect(() => {
     async function fetchFornitori() {
@@ -159,13 +179,49 @@ export function FornitoriSection({
     }
   };
 
-  const updateNewFornitore = (field, value) =>
+  const updateNewFornitore = (field, value) => {
     setNewFornitore((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: false }));
+    if (field === "nome" || field === "ragioneSociale") {
+      setErrors((prev) => ({ ...prev, identita: false }));
+    }
+  };
 
-  const addNewFornitore = async (e) => {
-    if (!newFornitore.nome.trim() && !newFornitore.ragioneSociale.trim())
-      return;
+  const validateFornitore = () => {
+    const f = newFornitore;
+    const e = {};
+    let valid = true;
+
+    const hasIdentita = f.ragioneSociale.trim() || f.nome.trim();
+    if (!hasIdentita) { e.identita = true; valid = false; }
+
+    if (!f.cf.trim()) {
+      e.cf = "required"; valid = false;
+    } else if (!cfRegex.test(f.cf.trim()) && !pivaRegex.test(f.cf.trim())) {
+      e.cf = "format"; valid = false;
+    }
+
+    if (!f.attivita.trim()) { e.attivita = true; valid = false; }
+    if (!f.indirizzo.trim()) { e.indirizzo = true; valid = false; }
+
+    if (!f.cap.trim()) {
+      e.cap = "required"; valid = false;
+    } else if (!capRegex.test(f.cap.trim())) {
+      e.cap = "format"; valid = false;
+    }
+
+    if (!f.citta.trim()) { e.citta = true; valid = false; }
+    if (!f.provincia) { e.provincia = true; valid = false; }
+
+    setErrors(e);
+    if (!valid) setFormError("Compila tutti i campi obbligatori prima di salvare.");
+    return valid;
+  };
+
+  const addNewFornitore = async () => {
+    if (!validateFornitore()) return;
     setSaving(true);
+    setFormError("");
     try {
       const res = await fetch("/api/fornitori", {
         method: "POST",
@@ -180,17 +236,9 @@ export function FornitoriSection({
       setTimeout(() => {
         setSuccess(false);
         setShowModal(false);
-        setNewFornitore({
-          nome: "",
-          cognome: "",
-          ragioneSociale: "",
-          indirizzo: "",
-          citta: "",
-          cap: "",
-          provincia: "",
-          cf: "",
-          attivita: "",
-        });
+        setNewFornitore(emptyFornitore);
+        setErrors({});
+        setFormError("");
       }, 800);
     } catch (err) {
       console.error("Errore inserimento fornitore:", err.message);
@@ -206,7 +254,6 @@ export function FornitoriSection({
     <div className="flex flex-col gap-5">
       {/* ── Toolbar ── */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Select */}
         <div className="relative flex-1 min-w-[200px] group">
           <Search
             size={13}
@@ -235,7 +282,6 @@ export function FornitoriSection({
           />
         </div>
 
-        {/* Aggiungi da select */}
         <button
           type="button"
           onClick={addSelectedFornitore}
@@ -246,7 +292,6 @@ export function FornitoriSection({
           Aggiungi
         </button>
 
-        {/* Elimina da DB */}
         <button
           type="button"
           onClick={deleteSelectedFornitore}
@@ -261,10 +306,13 @@ export function FornitoriSection({
           Elimina
         </button>
 
-        {/* Nuovo fornitore */}
         <button
           type="button"
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            setShowModal(true);
+            setErrors({});
+            setFormError("");
+          }}
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition shadow-sm shadow-emerald-500/20"
         >
           <UserPlus size={14} />
@@ -385,7 +433,7 @@ export function FornitoriSection({
 
             {/* Form */}
             <div
-              className="p-6 flex flex-col gap-4"
+              className="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto"
               onKeyDown={(e) => {
                 if (e.key === "Enter") addNewFornitore();
               }}
@@ -396,6 +444,12 @@ export function FornitoriSection({
                   <User size={11} />
                   Anagrafica
                 </p>
+                {errors.identita && (
+                  <p className="text-xs text-red-500 mb-2 flex items-center gap-1">
+                    <AlertCircle size={11} />
+                    Compila almeno Ragione Sociale oppure Nome
+                  </p>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <ModalField
                     label="Ragione Sociale"
@@ -403,6 +457,7 @@ export function FornitoriSection({
                     field="ragioneSociale"
                     value={newFornitore.ragioneSociale}
                     onChange={updateNewFornitore}
+                    error={errors.identita}
                   />
                   <ModalField
                     label="Nome"
@@ -410,6 +465,7 @@ export function FornitoriSection({
                     field="nome"
                     value={newFornitore.nome}
                     onChange={updateNewFornitore}
+                    error={errors.identita}
                   />
                   <ModalField
                     label="Cognome"
@@ -417,6 +473,15 @@ export function FornitoriSection({
                     field="cognome"
                     value={newFornitore.cognome}
                     onChange={updateNewFornitore}
+                    required
+                    error={errors.cognome}
+                    errorMsg="Campo obbligatorio"
+                    onBlur={() =>
+                      setErrors((prev) => ({
+                        ...prev,
+                        cognome: !newFornitore.cognome.trim(),
+                      }))
+                    }
                   />
                   <ModalField
                     label="CF / P.IVA"
@@ -424,6 +489,20 @@ export function FornitoriSection({
                     field="cf"
                     value={newFornitore.cf}
                     onChange={updateNewFornitore}
+                    required
+                    error={!!errors.cf}
+                    errorMsg={
+                      errors.cf === "format"
+                        ? "Inserisci un CF (16 caratteri) o P.IVA (11 cifre) valido"
+                        : "Campo obbligatorio"
+                    }
+                    onBlur={() => {
+                      const v = newFornitore.cf.trim();
+                      if (!v) setErrors((p) => ({ ...p, cf: "required" }));
+                      else if (!cfRegex.test(v) && !pivaRegex.test(v))
+                        setErrors((p) => ({ ...p, cf: "format" }));
+                      else setErrors((p) => ({ ...p, cf: false }));
+                    }}
                   />
                   <ModalField
                     label="Tipo Attività"
@@ -431,7 +510,15 @@ export function FornitoriSection({
                     field="attivita"
                     value={newFornitore.attivita}
                     onChange={updateNewFornitore}
-                    className="sm:col-span-2"
+                    required
+                    error={errors.attivita}
+                    errorMsg="Campo obbligatorio"
+                    onBlur={() =>
+                      setErrors((prev) => ({
+                        ...prev,
+                        attivita: !newFornitore.attivita.trim(),
+                      }))
+                    }
                   />
                 </div>
               </div>
@@ -443,20 +530,46 @@ export function FornitoriSection({
                   Indirizzo
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <ModalField
-                    label="Indirizzo"
-                    icon={MapPin}
-                    field="indirizzo"
-                    value={newFornitore.indirizzo}
-                    onChange={updateNewFornitore}
-                    className="sm:col-span-2"
-                  />
+                  <div className="sm:col-span-2">
+                    <ModalField
+                      label="Indirizzo"
+                      icon={MapPin}
+                      field="indirizzo"
+                      value={newFornitore.indirizzo}
+                      onChange={updateNewFornitore}
+                      required
+                      error={errors.indirizzo}
+                      errorMsg="Campo obbligatorio"
+                      onBlur={() =>
+                        setErrors((prev) => ({
+                          ...prev,
+                          indirizzo: !newFornitore.indirizzo.trim(),
+                        }))
+                      }
+                    />
+                  </div>
                   <ModalField
                     label="CAP"
                     icon={Hash}
                     field="cap"
                     value={newFornitore.cap}
-                    onChange={updateNewFornitore}
+                    onChange={(field, value) =>
+                      updateNewFornitore(field, value.replace(/\D/g, "").slice(0, 5))
+                    }
+                    required
+                    error={!!errors.cap}
+                    errorMsg={
+                      errors.cap === "format"
+                        ? "Il CAP deve essere di 5 cifre"
+                        : "Campo obbligatorio"
+                    }
+                    onBlur={() => {
+                      const v = newFornitore.cap.trim();
+                      if (!v) setErrors((p) => ({ ...p, cap: "required" }));
+                      else if (!capRegex.test(v))
+                        setErrors((p) => ({ ...p, cap: "format" }));
+                      else setErrors((p) => ({ ...p, cap: false }));
+                    }}
                   />
                   <ModalField
                     label="Città"
@@ -464,24 +577,40 @@ export function FornitoriSection({
                     field="citta"
                     value={newFornitore.citta}
                     onChange={updateNewFornitore}
+                    required
+                    error={errors.citta}
+                    errorMsg="Campo obbligatorio"
+                    onBlur={() =>
+                      setErrors((prev) => ({
+                        ...prev,
+                        citta: !newFornitore.citta.trim(),
+                      }))
+                    }
                   />
+
                   {/* Provincia */}
                   <div className="flex flex-col gap-1.5 sm:col-span-2">
                     <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
                       <MapPin size={11} />
                       Provincia
+                      <span className="text-blue-400">*</span>
                     </label>
                     <div className="relative group">
                       <MapPin
                         size={13}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors"
+                        className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${errors.provincia ? "text-red-400" : "text-gray-400 group-focus-within:text-blue-500"}`}
                       />
                       <select
                         value={newFornitore.provincia}
-                        onChange={(e) =>
-                          updateNewFornitore("provincia", e.target.value)
-                        }
-                        className="w-full pl-8 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm appearance-none"
+                        onChange={(e) => {
+                          updateNewFornitore("provincia", e.target.value);
+                          setErrors((prev) => ({ ...prev, provincia: false }));
+                        }}
+                        className={`w-full pl-8 pr-8 py-2.5 bg-white border rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:border-transparent shadow-sm appearance-none ${
+                          errors.provincia
+                            ? "border-red-400 focus:ring-red-500"
+                            : "border-gray-200 focus:ring-blue-500"
+                        }`}
                       >
                         <option value="">Seleziona provincia...</option>
                         {provinceItaliane.map((p) => (
@@ -495,9 +624,20 @@ export function FornitoriSection({
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                       />
                     </div>
+                    {errors.provincia && (
+                      <p className="text-xs text-red-500">Campo obbligatorio</p>
+                    )}
                   </div>
                 </div>
               </div>
+
+              {/* Errore globale */}
+              {formError && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">
+                  <AlertCircle size={15} className="shrink-0" />
+                  {formError}
+                </div>
+              )}
 
               {/* Success */}
               {success && (

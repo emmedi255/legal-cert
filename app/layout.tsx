@@ -25,9 +25,9 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="it">
+    <html lang="it" className="h-full">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 h-full`}
       >
         <UserProvider>
           <CondominiProvider>{children}</CondominiProvider>

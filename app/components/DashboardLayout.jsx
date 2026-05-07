@@ -18,12 +18,10 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-full flex flex-col bg-gray-50">
       <Header onToggle={() => setOpen(true)} />
 
-      {/* 👇 layout ORIZZONTALE */}
-
-      <div className="flex">
+      <div className="flex flex-1 overflow-hidden">
         {user && (
           <Sidebar
             open={open}
@@ -32,8 +30,7 @@ export default function DashboardLayout({ children }) {
             onLogout={handleLogout}
           />
         )}
-        {/* 👇 CONTENTO ACCANTO */}
-        <main className="flex-1 p-6 md:p-10 lg:ml-64 overflow-y-auto h-[calc(100vh-64px)]">
+        <main className="flex-1 lg:ml-64 overflow-y-auto bg-gray-50 p-6 md:p-10">
           {children}
         </main>
       </div>

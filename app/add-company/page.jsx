@@ -186,7 +186,18 @@ export default function DataForm({
   const [success, setSuccess] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedType, setSelectedType] = useState(null);
+  const [condominioInvalid, setCondominioInvalid] = useState(false);
+  const [dataInvalid, setDataInvalid] = useState(false);
+  const [indirizzoInvalid, setIndirizzoInvalid] = useState(false);
+  const [cittaInvalid, setCittaInvalid] = useState(false);
+  const [provinciaInvalid, setProvinciaInvalid] = useState(false);
+  const [capInvalid, setCapInvalid] = useState(false);
+  const [cfInvalid, setCfInvalid] = useState(false);
   const isEdit = mode === "edit";
+
+  const indirizzoRegex = /^(via|viale|piazza)\s+[^,]+,\s*\d+/i;
+  const capRegex = /^\d{5}$/;
+  const cfRegex = /^\d{11}$/;
 
   const openAuthModal = (type) => {
     setSelectedType(type);
@@ -416,7 +427,44 @@ export default function DataForm({
     });
   };
 
+  const validateIntestazione = () => {
+    let valid = true;
+    const i = form.intestazione;
+    if (!i.condominio?.trim()) {
+      setCondominioInvalid(true);
+      valid = false;
+    }
+    if (!i.data) {
+      setDataInvalid(true);
+      valid = false;
+    }
+    if (!i.citta?.trim()) {
+      setCittaInvalid(true);
+      valid = false;
+    }
+    if (!i.provincia) {
+      setProvinciaInvalid(true);
+      valid = false;
+    }
+    if (!indirizzoRegex.test(i.condominio_indirizzo ?? "")) {
+      setIndirizzoInvalid(true);
+      valid = false;
+    }
+    if (!capRegex.test(i.cap ?? "")) {
+      setCapInvalid(true);
+      valid = false;
+    }
+    if (!cfRegex.test(i.cfCondominio ?? "")) {
+      setCfInvalid(true);
+      valid = false;
+    }
+    if (!valid)
+      setError("Compila tutti i campi obbligatori prima di continuare.");
+    return valid;
+  };
+
   const saveDraft = async () => {
+    if (!validateIntestazione()) return;
     setLoadingBozza(true);
     setError("");
     setSuccess("");
@@ -441,6 +489,7 @@ export default function DataForm({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateIntestazione()) return;
     setLoading(true);
     setError("");
     setSuccess("");
@@ -577,22 +626,18 @@ export default function DataForm({
 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
-                    Data
+                    Data *
                   </label>
                   <input
                     type="date"
+                    required
                     value={form.intestazione.data}
-                    onChange={(e) =>
-                      update(["intestazione", "data"], e.target.value)
-                    }
-                    className="px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm shadow-sm text-gray-600
-focus:outline-none focus:ring-2 focus:ring-blue-500
-
-disabled:bg-gray-100
-disabled:border-gray-300
-disabled:text-gray-500
-disabled:cursor-not-allowed
-disabled:shadow-none"
+                    onChange={(e) => {
+                      update(["intestazione", "data"], e.target.value);
+                      if (dataInvalid)
+                        setDataInvalid(!e.target.value === false);
+                    }}
+                    className={`px-3 py-2.5 bg-white border rounded-xl text-sm shadow-sm text-gray-600 focus:outline-none focus:ring-2 focus:border-transparent disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none${dataInvalid ? " border-red-400 focus:ring-red-500" : " border-gray-200 focus:ring-blue-500"}`}
                   />
                 </div>
                 {/* Condominio */}
@@ -602,15 +647,13 @@ disabled:shadow-none"
                   </label>
                   <InlineInput
                     value={form.intestazione.condominio}
-                    className="disabled:bg-gray-100
-disabled:border-gray-300
-disabled:text-gray-500
-disabled:cursor-not-allowed
-disabled:shadow-none"
+                    className={`disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none${condominioInvalid ? " border-red-400 focus:ring-red-500" : ""}`}
                     required
-                    onChange={(e) =>
-                      update(["intestazione", "condominio"], e.target.value)
-                    }
+                    onChange={(e) => {
+                      update(["intestazione", "condominio"], e.target.value);
+                      if (condominioInvalid)
+                        setCondominioInvalid(!e.target.value.trim());
+                    }}
                     placeholder="es. Condominio Primavera"
                   />
                 </div>
@@ -620,21 +663,33 @@ disabled:shadow-none"
                     Indirizzo *
                   </label>
                   <InlineInput
-                    className="disabled:bg-gray-100
-disabled:border-gray-300
-disabled:text-gray-500
-disabled:cursor-not-allowed
-disabled:shadow-none"
+                    className={`disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none${indirizzoInvalid ? " border-red-400 focus:ring-red-500" : ""}`}
                     value={form.intestazione.condominio_indirizzo}
                     required
-                    onChange={(e) =>
+                    onBlur={(e) =>
+                      setIndirizzoInvalid(
+                        !!e.target.value &&
+                          !indirizzoRegex.test(e.target.value),
+                      )
+                    }
+                    onChange={(e) => {
                       update(
                         ["intestazione", "condominio_indirizzo"],
                         e.target.value,
-                      )
-                    }
+                      );
+                      if (indirizzoInvalid)
+                        setIndirizzoInvalid(
+                          !indirizzoRegex.test(e.target.value),
+                        );
+                    }}
                     placeholder="Via Roma, 8"
                   />
+                  {indirizzoInvalid && (
+                    <p className="text-xs text-red-500 mt-1">
+                      Formato: Via Roma, 8 — prefisso (Via, Viale, Piazza) +
+                      nome + virgola + numero civico
+                    </p>
+                  )}
                 </div>
                 {/* Città */}
                 <div className="flex flex-col gap-1.5">
@@ -642,16 +697,13 @@ disabled:shadow-none"
                     Città *
                   </label>
                   <InlineInput
-                    className="disabled:bg-gray-100
-disabled:border-gray-300
-disabled:text-gray-500
-disabled:cursor-not-allowed
-disabled:shadow-none"
+                    className={`disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none${cittaInvalid ? " border-red-400 focus:ring-red-500" : ""}`}
                     required
                     value={form.intestazione.citta}
-                    onChange={(e) =>
-                      update(["intestazione", "citta"], e.target.value)
-                    }
+                    onChange={(e) => {
+                      update(["intestazione", "citta"], e.target.value);
+                      if (cittaInvalid) setCittaInvalid(!e.target.value.trim());
+                    }}
                     placeholder="Roma"
                   />
                 </div>
@@ -663,10 +715,12 @@ disabled:shadow-none"
                   <select
                     value={form.intestazione.provincia ?? ""}
                     required
-                    onChange={(e) =>
-                      update(["intestazione", "provincia"], e.target.value)
-                    }
-                    className="px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    onChange={(e) => {
+                      update(["intestazione", "provincia"], e.target.value);
+                      if (provinciaInvalid)
+                        setProvinciaInvalid(!e.target.value);
+                    }}
+                    className={`px-3 py-2.5 bg-white border rounded-xl text-sm focus:outline-none focus:ring-2 shadow-sm text-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed${provinciaInvalid ? " border-red-400 focus:ring-red-500" : " border-gray-200 focus:ring-blue-500"}`}
                   >
                     <option value="">Seleziona...</option>
                     {provinceItaliane.map((p) => (
@@ -679,19 +733,29 @@ disabled:shadow-none"
                 {/* CAP */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
-                    CAP
+                    CAP *
                   </label>
                   <InlineInput
                     value={form.intestazione.cap}
-                    className="disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                    onChange={(e) =>
-                      update(
-                        ["intestazione", "cap"],
-                        e.target.value.replace(/\D/g, "").slice(0, 5),
+                    required
+                    className={`disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed${capInvalid ? " border-red-400 focus:ring-red-500" : ""}`}
+                    onBlur={(e) =>
+                      setCapInvalid(
+                        !!e.target.value && !capRegex.test(e.target.value),
                       )
                     }
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, "").slice(0, 5);
+                      update(["intestazione", "cap"], v);
+                      if (capInvalid) setCapInvalid(!capRegex.test(v));
+                    }}
                     placeholder="00100"
                   />
+                  {capInvalid && (
+                    <p className="text-xs text-red-500 mt-1">
+                      Il CAP deve essere di 5 cifre
+                    </p>
+                  )}
                 </div>
                 {/* CF */}
                 <div className="flex flex-col gap-1.5 md:col-span-3">
@@ -700,15 +764,25 @@ disabled:shadow-none"
                   </label>
                   <InlineInput
                     value={form.intestazione.cfCondominio}
-                    onChange={(e) =>
-                      update(
-                        ["intestazione", "cfCondominio"],
-                        e.target.value.toUpperCase().slice(0, 11),
+                    required
+                    className={`max-w-xs disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed${cfInvalid ? " border-red-400 focus:ring-red-500" : ""}`}
+                    onBlur={(e) =>
+                      setCfInvalid(
+                        !!e.target.value && !cfRegex.test(e.target.value),
                       )
                     }
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, "").slice(0, 11);
+                      update(["intestazione", "cfCondominio"], v);
+                      if (cfInvalid) setCfInvalid(!cfRegex.test(v));
+                    }}
                     placeholder="12345678901"
-                    className="max-w-xs disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                   />
+                  {cfInvalid && (
+                    <p className="text-xs text-red-500 mt-1">
+                      Il codice fiscale del condominio deve essere di 11 cifre
+                    </p>
+                  )}
                 </div>
               </div>
             </fieldset>
@@ -1910,6 +1984,12 @@ disabled:shadow-none"
               </button>
             </div>
           </div>
+          {error && (
+            <div className="flex items-center gap-2.5 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">
+              <AlertCircle size={15} className="shrink-0" />
+              {error}
+            </div>
+          )}
         </form>
       </div>
 
