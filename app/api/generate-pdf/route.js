@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
+import { getSession, unauthorized } from "@/lib/auth";
 export const runtime = "nodejs";
 
 const supabase = createClient(
@@ -13,6 +14,9 @@ const imageBuffer = fs.readFileSync(filePath);
 const base64Image = `data:image/png;base64,${imageBuffer.toString("base64")}`;
 
 export async function POST(req) {
+  const session = await getSession();
+  if (!session) return unauthorized();
+
   try {
     const { user, condominioid, formData } = await req.json(); // formData è lo stato completo del form
 

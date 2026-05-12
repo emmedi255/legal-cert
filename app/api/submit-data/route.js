@@ -7,6 +7,8 @@ import { generateTrattamentiPdf } from "@/lib/trattamentiCondominioGenerator";
 import { generateFormCompletoPdf } from "@/lib/checkListGenerator";
 
 import { capitalizeWords } from "@/app/utils/formatters";
+import { getSession, unauthorized, forbidden } from "@/lib/auth";
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_SUPABASE_ROLE_KEY,
@@ -24,28 +26,45 @@ const normalizeNumber = (v) => {
 };
 
 export async function POST(req) {
+  const session = await getSession();
+  if (!session) return unauthorized();
+
   try {
-    const { user, form, condominioId } = await req.json();
+    const { user: clientUser, form, condominioId } = await req.json();
+
+    // Determina il proprietario target: se OWNER sta modificando per conto di altri
+    const targetUserId =
+      session.role === "OWNER" && clientUser?.id && clientUser.id !== session.id
+        ? clientUser.id
+        : session.id;
 
     if (!condominioId) {
-      const { data: condomini, error: errorCondomini } = await supabase
-        .from("condomini")
-        .select("*")
-        .eq("user_id", user.id);
+      // Legge condomini_max dal DB — non dal client
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("condomini_max")
+        .eq("id", targetUserId)
+        .single();
 
-      if (condomini) {
-        if (condomini.length >= user.condomini_max) {
-          return NextResponse.json(
-            { error: "Numero condomini Massimo Raggiunti" },
-            { status: 400 },
-          );
-        }
+      const { data: condomini } = await supabase
+        .from("condomini")
+        .select("condominio_id")
+        .eq("user_id", targetUserId);
+
+      if (condomini && profile && condomini.length >= profile.condomini_max) {
+        return NextResponse.json(
+          { error: "Numero condomini Massimo Raggiunti" },
+          { status: 400 },
+        );
       }
     }
 
+    // Ricostruisce l'oggetto user affidabile dalla sessione + dati DB
+    const user = { ...session, id: targetUserId };
+
     const GENERAL_FORNITORE_ID = "11111111-1111-1111-1111-111111111111";
     const condominioRow = {
-      user_id: user.id,
+      user_id: targetUserId,
       data: form.intestazione?.data || null,
       condominio: capitalizeWords(form.intestazione?.condominio) || null,
       condominio_indirizzo:
@@ -168,15 +187,11 @@ export async function POST(req) {
         .single();
 
       if (existing?.user_id) {
+        if (existing.user_id !== session.id && session.role !== "OWNER") {
+          return forbidden();
+        }
         condominioRow.user_id = existing.user_id;
       }
-    }
-
-    if (!user.id) {
-      return NextResponse.json(
-        { error: "Utente non loggato" },
-        { status: 400 },
-      );
     }
 
     const { data: condominio, error: condominioError } = await supabase

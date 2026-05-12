@@ -17,6 +17,8 @@ import {
   FolderOpen,
   Plus,
   Loader2,
+  X,
+  ShieldAlert,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "../components/DashboardLayout";
@@ -31,6 +33,15 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [openDocs, setOpenDocs] = useState(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+
+  const handleNewCondominio = () => {
+    if (condomini.length >= (user?.condomini_max ?? Infinity)) {
+      setShowLimitModal(true);
+    } else {
+      router.push("/add-company");
+    }
+  };
 
   useEffect(() => {
     if (!user) router.push("/login");
@@ -137,12 +148,31 @@ export default function Dashboard() {
                   <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
                     I miei Condomini
                   </h1>
-                  <p className="text-gray-400 text-sm mt-0.5">
-                    {condomini.length} condomini registrati
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-gray-400 text-sm">
+                      {condomini.length}
+                      {user?.condomini_max ? ` / ${user.condomini_max}` : ""} condomini
+                    </p>
+                    {user?.condomini_max && (
+                      <span
+                        className={clsx(
+                          "text-[11px] font-semibold px-2 py-0.5 rounded-full",
+                          condomini.length >= user.condomini_max
+                            ? "bg-red-50 text-red-600 border border-red-200"
+                            : condomini.length >= user.condomini_max * 0.8
+                              ? "bg-amber-50 text-amber-600 border border-amber-200"
+                              : "bg-emerald-50 text-emerald-600 border border-emerald-200",
+                        )}
+                      >
+                        {condomini.length >= user.condomini_max
+                          ? "Limite raggiunto"
+                          : `${user.condomini_max - condomini.length} disponibili`}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <button
-                  onClick={() => router.push("/add-company")}
+                  onClick={handleNewCondominio}
                   className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-md shadow-blue-500/20"
                 >
                   <Plus size={16} />
@@ -235,7 +265,7 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <button
-                  onClick={() => router.push("/add-company")}
+                  onClick={handleNewCondominio}
                   className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition shadow-md shadow-blue-500/20"
                 >
                   <Plus size={15} />
@@ -520,6 +550,41 @@ export default function Dashboard() {
           </div>
         </div>
       </DashboardLayout>
+
+      {/* ── Modal limite condomini ── */}
+      {showLimitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
+                <ShieldAlert size={20} className="text-amber-500" />
+              </div>
+              <button
+                onClick={() => setShowLimitModal(false)}
+                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-gray-900">
+                Limite condomini raggiunto
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Hai raggiunto il numero massimo di condomini consentiti per il
+                tuo piano ({user?.condomini_max}). Contatta l'amministratore
+                per aumentare il limite.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowLimitModal(false)}
+              className="w-full py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition"
+            >
+              Ho capito
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

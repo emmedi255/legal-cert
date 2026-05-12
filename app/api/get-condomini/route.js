@@ -1,22 +1,25 @@
-// app/api/get-condomini/route.js
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { getSession, unauthorized, forbidden } from "@/lib/auth";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_SUPABASE_ROLE_KEY
+  process.env.NEXT_SUPABASE_ROLE_KEY,
 );
 
 export const GET = async (req) => {
+  const session = await getSession();
+  if (!session) return unauthorized();
+
+  const { searchParams } = new URL(req.url);
+  const user_id = searchParams.get("user_id");
+
+  if (!user_id) return NextResponse.json({ error: "user_id mancante" }, { status: 400 });
+
+  // Un utente può leggere solo i propri condomini; OWNER può leggere tutti
+  if (user_id !== session.id && session.role !== "OWNER") return forbidden();
+
   try {
-    const { searchParams } = new URL(req.url);
-    const user_id = searchParams.get("user_id");
-
-    if (!user_id) {
-      return NextResponse.json({ error: "user_id mancante" }, { status: 400 });
-    }
-
-    // 🔹 Fetch condomini con documenti
     const { data, error } = await supabase
       .from("condomini")
       .select(`
@@ -31,42 +34,27 @@ export const GET = async (req) => {
       .eq("user_id", user_id)
       .order("data", { ascending: false });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    // 🔹 Genera signed URLs per i documenti
     const condominiWithUrls = await Promise.all(
       data.map(async (cond) => {
         if (!cond.documents || cond.documents.length === 0) return cond;
 
         const documentsWithUrls = await Promise.all(
           cond.documents.map(async (doc) => {
-            const filePath = doc.file_url.replace(/^documents\//, ""); 
+            const filePath = doc.file_url.replace(/^documents\//, "");
+            const { data: signedData, error: signedError } = await supabase.storage
+              .from("documents")
+              .createSignedUrl(filePath, 3600);
 
-            const { data: signedData, error: signedError } =
-              await supabase.storage
-                .from("documents")
-                .createSignedUrl(filePath, 3600); // link valido 1 ora
+            if (signedError) console.error("Errore signedUrl:", signedError.message);
 
-            if (signedError) {
-              console.error("Errore signedUrl:", signedError.message);
-            }
-
-
-
-            return {
-              ...doc,
-              signedUrl: signedData?.signedUrl || null,
-            };
-          })
+            return { ...doc, signedUrl: signedData?.signedUrl || null };
+          }),
         );
 
-        return {
-          ...cond,
-          documents: documentsWithUrls,
-        };
-      })
+        return { ...cond, documents: documentsWithUrls };
+      }),
     );
 
     return NextResponse.json({ condomini: condominiWithUrls });

@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { capitalizeWords } from "@/app/utils/formatters";
+import { getSession, unauthorized, forbidden } from "@/lib/auth";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -8,19 +9,21 @@ const supabase = createClient(
 );
 
 export async function POST(req) {
+  const session = await getSession();
+  if (!session) return unauthorized();
+
   try {
     const formData = await req.json();
     const { id, password, role: clientRole, ...rest } = formData;
 
-    if (!id) {
-      return NextResponse.json({ error: "ID mancante" }, { status: 400 });
-    }
+    if (!id) return NextResponse.json({ error: "ID mancante" }, { status: 400 });
 
-    // --- 1. Aggiorna Auth ---
+    // Un utente può aggiornare solo il proprio profilo
+    if (id !== session.id) return forbidden();
+
     const authUpdate = {};
     if (rest.email) authUpdate.email = rest.email;
-    if (password) authUpdate.password = password; // opzionale
-
+    if (password) authUpdate.password = password;
     authUpdate.user_metadata = {
       name: capitalizeWords(rest.name),
       cognome: capitalizeWords(rest.cognome),
@@ -28,11 +31,9 @@ export async function POST(req) {
       telefono: rest.telefono,
     };
 
-    const { data: authData, error: authError } =
-      await supabase.auth.admin.updateUserById(id, authUpdate);
+    const { error: authError } = await supabase.auth.admin.updateUserById(id, authUpdate);
     if (authError) throw authError;
 
-    // --- 2. Aggiorna profiles ---
     const { data: existing, error: fetchError } = await supabase
       .from("profiles")
       .select("role")
@@ -54,8 +55,6 @@ export async function POST(req) {
     if (readError) throw readError;
 
     const res = NextResponse.json({ user: updatedUser });
-
-    // Aggiorna cookie sessione
     res.cookies.set("session_user", JSON.stringify(updatedUser), {
       httpOnly: true,
       sameSite: "lax",

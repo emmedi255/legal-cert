@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { capitalizeWords } from "../../utils/formatters";
+import { getSession, unauthorized, forbidden, isValidUUID } from "@/lib/auth";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -19,46 +20,45 @@ const normalizeNumber = (v) => {
 };
 
 export async function POST(req) {
+  const session = await getSession();
+  if (!session) return unauthorized();
+
   try {
     const { userId, form, condominioId } = await req.json();
 
-    // Validazione input
-    if (!userId) {
-      return NextResponse.json({ error: "User ID mancante" }, { status: 400 });
+    if (!form || !form.intestazione) {
+      return NextResponse.json({ error: "Dati form incompleti" }, { status: 400 });
     }
 
-    if (!form || !form.intestazione) {
-      return NextResponse.json(
-        { error: "Dati form incompleti" },
-        { status: 400 },
-      );
-    }
+    // userId dal body è il proprietario target (ownerOverrideUserId o session.id)
+    // Solo OWNER può salvare per conto di altri utenti
+    const targetUserId = userId || session.id;
+    if (targetUserId !== session.id && session.role !== "OWNER") return forbidden();
 
     if (!condominioId) {
-      const { data: max, error: profiles } = await supabase
+      // Verifica limite condomini per il proprietario target
+      const { data: max } = await supabase
         .from("profiles")
         .select("condomini_max")
-        .eq("id", userId)
+        .eq("id", targetUserId)
         .single();
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("condomini")
-        .select("*")
-        .eq("user_id", userId);
+        .select("condominio_id")
+        .eq("user_id", targetUserId);
 
-      if (data) {
-        if (data.length >= max.condomini_max) {
-          return NextResponse.json(
-            { error: "Numero condomini Massimo Raggiunti" },
-            { status: 400 },
-          );
-        }
+      if (data && max && data.length >= max.condomini_max) {
+        return NextResponse.json(
+          { error: "Numero condomini Massimo Raggiunti" },
+          { status: 400 },
+        );
       }
     }
 
     // Costruzione oggetto condominio con optional chaining
     const condominioRow = {
-      user_id: userId,
+      user_id: targetUserId,
       data: form.intestazione?.data,
       condominio: capitalizeWords(form.intestazione?.condominio),
       condominio_indirizzo: capitalizeWords(
@@ -174,7 +174,7 @@ export async function POST(req) {
       note_ispettorato: form.sezione0711?.note || null,
     };
 
-    // Aggiungi condominio_id se fornito e preserva user_id originale
+    // Aggiungi condominio_id se fornito, verifica ownership e preserva user_id originale
     if (condominioId) {
       condominioRow.condominio_id = condominioId;
 
@@ -185,6 +185,10 @@ export async function POST(req) {
         .single();
 
       if (existing?.user_id) {
+        // Verifica che l'utente loggato sia il proprietario o OWNER
+        if (existing.user_id !== session.id && session.role !== "OWNER") {
+          return forbidden();
+        }
         condominioRow.user_id = existing.user_id;
       }
     }
@@ -208,18 +212,23 @@ export async function POST(req) {
 
     // Gestione fornitori
     const fornitori = form?.sezione8?.addedFornitori || [];
-    const fornitoriIds = fornitori.map((f) => f.fornitore_id);
+    const fornitoriIds = fornitori
+      .map((f) => f.fornitore_id)
+      .filter(isValidUUID);
 
     // 1. Pulisci fornitori rimossi
-    await supabase
-      .from("condomini_fornitori")
-      .delete()
-      .eq("condominio_id", condominioIdFinal)
-      .not(
-        "fornitore_id",
-        "in",
-        fornitoriIds.length > 0 ? `(${fornitoriIds.join(",")})` : "''",
-      );
+    if (fornitoriIds.length > 0) {
+      await supabase
+        .from("condomini_fornitori")
+        .delete()
+        .eq("condominio_id", condominioIdFinal)
+        .not("fornitore_id", "in", `(${fornitoriIds.join(",")})`);
+    } else {
+      await supabase
+        .from("condomini_fornitori")
+        .delete()
+        .eq("condominio_id", condominioIdFinal);
+    }
 
     // 2. Aggiungi nuovi fornitori
     if (fornitori.length > 0) {
