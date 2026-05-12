@@ -70,6 +70,9 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [pivaInvalid, setPivaInvalid] = useState(false);
+
+  const pivaRegex = /^\d{11}$/;
   const [copied, setCopied] = useState(false);
   const [copiedCreds, setCopiedCreds] = useState(false);
 
@@ -143,6 +146,12 @@ export default function Signup() {
   const handleSignup = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (form.partita_iva && !pivaRegex.test(form.partita_iva)) {
+      setPivaInvalid(true);
+      return;
+    }
+    setPivaInvalid(false);
     setLoading(true);
     try {
       const res = await fetch("/api/signup", {
@@ -257,7 +266,13 @@ export default function Signup() {
                 icon={Hash}
                 name="partita_iva"
                 value={form.partita_iva}
-                onChange={handleChange}
+                onChange={(e) => {
+                  e.target.value = e.target.value.slice(0, 11);
+                  handleChange(e);
+                  setPivaInvalid(false);
+                }}
+                invalid={pivaInvalid}
+                errorMessage="La partita IVA deve essere di 11 cifre"
               />
             </div>
           </SectionCard>

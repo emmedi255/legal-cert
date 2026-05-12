@@ -29,6 +29,7 @@ export default function ClientsPage() {
   const [selectedAdminId, setSelectedAdminId] = useState(null);
   const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("tutti");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -67,11 +68,17 @@ export default function ClientsPage() {
     );
   }
 
-  const filteredClients = clients.filter((c) =>
-    `${c.ragione_sociale} ${c.name} ${c.email}`
+  const filteredClients = clients.filter((c) => {
+    const matchesSearch = `${c.ragione_sociale} ${c.name} ${c.email}`
       .toLowerCase()
-      .includes(search.toLowerCase()),
-  );
+      .includes(search.toLowerCase());
+    const isActive = new Date(c.password_expiration) >= new Date();
+    const matchesStatus =
+      statusFilter === "tutti" ||
+      (statusFilter === "attivi" && isActive) ||
+      (statusFilter === "scaduti" && !isActive);
+    return matchesSearch && matchesStatus;
+  });
 
   const handleDelete = async (adminId) => {
     if (!confirm("Eliminare definitivamente questo amministratore?")) return;
@@ -115,18 +122,66 @@ export default function ClientsPage() {
           </div>
         </div>
 
-        {/* ── Search ── */}
-        <div className="relative mb-6 max-w-md">
-          <Search
-            size={15}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <input
-            placeholder="Cerca per nome, email, ragione sociale..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition"
-          />
+        {/* ── Search + Filtri ── */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="relative max-w-md w-full">
+            <Search
+              size={15}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              placeholder="Cerca per nome, email, ragione sociale..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition"
+            />
+          </div>
+          <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-1.5 py-1.5 shadow-sm w-fit">
+            {[
+              { key: "tutti", label: "Tutti", count: clients.length },
+              {
+                key: "attivi",
+                label: "Attivi",
+                count: clients.filter(
+                  (c) => new Date(c.password_expiration) >= new Date(),
+                ).length,
+              },
+              {
+                key: "scaduti",
+                label: "Scaduti",
+                count: clients.filter(
+                  (c) => new Date(c.password_expiration) < new Date(),
+                ).length,
+              },
+            ].map(({ key, label, count }) => (
+              <button
+                key={key}
+                onClick={() => setStatusFilter(key)}
+                className={clsx(
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                  statusFilter === key
+                    ? key === "scaduti"
+                      ? "bg-red-500 text-white shadow-sm"
+                      : key === "attivi"
+                        ? "bg-emerald-500 text-white shadow-sm"
+                        : "bg-blue-600 text-white shadow-sm"
+                    : "text-gray-500 hover:bg-gray-100",
+                )}
+              >
+                {label}
+                <span
+                  className={clsx(
+                    "text-[10px] font-bold px-1 py-0.5 rounded",
+                    statusFilter === key
+                      ? "bg-white/20"
+                      : "bg-gray-100 text-gray-400",
+                  )}
+                >
+                  {count}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── Content ── */}

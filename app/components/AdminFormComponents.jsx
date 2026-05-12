@@ -14,6 +14,10 @@ export function Field({
   required,
   disabled,
   placeholder,
+  invalid,
+  errorMessage,
+  maxLength,
+  pattern,
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -26,7 +30,7 @@ export function Field({
         {Icon && (
           <Icon
             size={14}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors"
+            className={`absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors ${invalid ? "text-red-400" : "text-gray-400 group-focus-within:text-blue-500"}`}
           />
         )}
         <input
@@ -37,9 +41,14 @@ export function Field({
           required={required}
           disabled={disabled}
           placeholder={placeholder || label}
-          className={inputClass}
+          maxLength={maxLength}
+          pattern={pattern}
+          className={`${inputClass} ${invalid ? "border-red-400 focus:ring-red-500" : ""}`}
         />
       </div>
+      {invalid && errorMessage && (
+        <p className="text-[11px] text-red-500 font-medium">{errorMessage}</p>
+      )}
     </div>
   );
 }
