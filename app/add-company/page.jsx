@@ -466,7 +466,7 @@ export default function DataForm({
     return valid;
   };
 
-  const effectiveUserId = ownerOverrideUserId ?? user.id;
+  const effectiveUserId = ownerOverrideUserId ?? user?.id;
   const redirectAfterSave = ownerOverrideUserId
     ? `/condo-managers/${ownerOverrideUserId}`
     : "/dashboard";
