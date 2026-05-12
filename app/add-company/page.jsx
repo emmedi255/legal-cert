@@ -1632,15 +1632,11 @@ export default function DataForm({
                   {(form.sezione03.sicurezza.isAltro ||
                     !!form.sezione03.sicurezza.altro) && (
                     <InlineInput
-                      value={form.sezione03.sicurezza.altro}
+                      value={form.sezione03.sicurezza.altro || ""}
                       onChange={(e) => {
-                        update(
-                          ["sezione03", "sicurezza", "altro"],
-                          e.target.value,
-                        );
+                        update(["sezione03", "sicurezza", "altro"], e.target.value);
                         if (!e.target.value)
-                          (update[("sezione03", "sicurezza", "isAltro")],
-                            false);
+                          update(["sezione03", "sicurezza", "isAltro"], false);
                       }}
                       placeholder="Specificare..."
                       className="text-xs py-1.5 w-40"
