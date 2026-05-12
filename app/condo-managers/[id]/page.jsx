@@ -22,12 +22,15 @@ import {
   X,
   FileCheck,
   BadgeCheck,
+  FilePen,
 } from "lucide-react";
+import { useUser } from "../../context/UserContext";
 import clsx from "clsx";
 
 export default function AdminClientDashboard() {
   const { id } = useParams();
   const router = useRouter();
+  const { user } = useUser();
 
   const [client, setClient] = useState(null);
   const [condomini, setCondomini] = useState([]);
@@ -368,12 +371,26 @@ export default function AdminClientDashboard() {
                           </span>
                         </div>
 
-                        {/* Docs badge + chevron */}
+                        {/* Docs badge + edit + chevron */}
                         <div className="flex items-center gap-2 justify-end">
                           {docCount > 0 && (
                             <span className="text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded-full">
                               {docCount} doc
                             </span>
+                          )}
+                          {user?.role === "OWNER" && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(
+                                  `/condo-managers/${id}/condomini/${condominio.condominio_id}/edit`,
+                                );
+                              }}
+                              title="Modifica condominio"
+                              className="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-blue-600 hover:border-blue-300 transition-colors"
+                            >
+                              <FilePen size={13} />
+                            </button>
                           )}
                           <ChevronRight
                             size={15}
@@ -436,6 +453,20 @@ export default function AdminClientDashboard() {
                             <span className="text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-200 px-1.5 py-0.5 rounded-full">
                               {docCount}
                             </span>
+                          )}
+                          {user?.role === "OWNER" && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(
+                                  `/condo-managers/${id}/condomini/${condominio.condominio_id}/edit`,
+                                );
+                              }}
+                              title="Modifica condominio"
+                              className="w-6 h-6 flex items-center justify-center rounded-md bg-white border border-gray-200 text-gray-400 hover:text-blue-600 hover:border-blue-300 transition-colors"
+                            >
+                              <FilePen size={11} />
+                            </button>
                           )}
                         </div>
                       </div>

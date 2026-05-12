@@ -177,6 +177,7 @@ export default function DataForm({
   initialForm = null,
   mode = "create",
   condominioId = null,
+  ownerOverrideUserId = null,
 }) {
   const router = useRouter();
   const { user, loading: userLoading } = useUser();
@@ -465,6 +466,11 @@ export default function DataForm({
     return valid;
   };
 
+  const effectiveUserId = ownerOverrideUserId ?? user.id;
+  const redirectAfterSave = ownerOverrideUserId
+    ? `/condo-managers/${ownerOverrideUserId}`
+    : "/dashboard";
+
   const saveDraft = async () => {
     if (!validateIntestazione()) return;
     setLoadingBozza(true);
@@ -474,14 +480,14 @@ export default function DataForm({
       const res = await fetch("/api/save-condominio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, form, condominioId }),
+        body: JSON.stringify({ userId: effectiveUserId, form, condominioId }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Errore durante il salvataggio");
         return;
       }
-      router.push("/dashboard");
+      router.push(redirectAfterSave);
     } catch {
       setError("Errore durante il salvataggio");
     } finally {
@@ -497,10 +503,13 @@ export default function DataForm({
     setSuccess("");
     setCreatingPdf(true);
     try {
+      const effectiveUser = ownerOverrideUserId
+        ? { ...user, id: ownerOverrideUserId }
+        : user;
       const res = await fetch("/api/submit-data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user, form, condominioId }),
+        body: JSON.stringify({ user: effectiveUser, form, condominioId }),
       });
       const data = await res.json();
       if (data.error) {
@@ -509,7 +518,7 @@ export default function DataForm({
         return;
       }
       setSuccess("Modulo salvato con successo!");
-      setTimeout(() => router.push("/dashboard"), 3000);
+      setTimeout(() => router.push(redirectAfterSave), 3000);
     } catch (err) {
       setError(`Errore: ${err.message}`);
     } finally {
@@ -622,7 +631,7 @@ export default function DataForm({
             icon={Building2}
             accentColor="slate"
           >
-            <fieldset disabled={mode === "edit"}>
+            <fieldset disabled={mode === "edit" && !ownerOverrideUserId}>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {/* Data */}
 
@@ -2010,7 +2019,7 @@ export default function DataForm({
         type="button"
         onClick={() => {
           if (confirm("Vuoi tornare alla Home senza salvare?"))
-            router.push("/dashboard");
+            router.push(redirectAfterSave);
         }}
         title="Torna alla Home"
         className="fixed bottom-6 right-6 z-50 w-12 h-12 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl transition-all"

@@ -174,9 +174,19 @@ export async function POST(req) {
       note_ispettorato: form.sezione0711?.note || null,
     };
 
-    // Aggiungi condominio_id se fornito
+    // Aggiungi condominio_id se fornito e preserva user_id originale
     if (condominioId) {
       condominioRow.condominio_id = condominioId;
+
+      const { data: existing } = await supabase
+        .from("condomini")
+        .select("user_id")
+        .eq("condominio_id", condominioId)
+        .single();
+
+      if (existing?.user_id) {
+        condominioRow.user_id = existing.user_id;
+      }
     }
 
     // Upsert condominio

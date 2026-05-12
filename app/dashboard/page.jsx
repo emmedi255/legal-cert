@@ -411,7 +411,7 @@ export default function Dashboard() {
                               </div>
 
                               {condominio.documents?.length > 0 ? (
-                                <ul className="flex flex-col gap-1.5 pl-1">
+                                <ul className="flex flex-wrap gap-1.5 pl-1">
                                   {condominio.documents.map((doc, index) => {
                                     const key =
                                       doc.id ||
