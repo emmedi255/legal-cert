@@ -27,7 +27,7 @@ import clsx from "clsx";
 export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [docsFilter, setDocsFilter] = useState("tutti");
-  const { user, setUser, loading: userLoading } = useUser();
+  const { user, setUser, loading: userLoading, sessionExpired } = useUser();
   const { condomini, setCondomini } = useCondomini();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -44,8 +44,8 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    if (!user) router.push("/login");
-  }, [user, router]);
+    if (!userLoading && !user && !sessionExpired) router.push("/login");
+  }, [user, userLoading, sessionExpired, router]);
 
   /* ── FETCH ── */
   const fetchData = async () => {

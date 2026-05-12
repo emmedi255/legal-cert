@@ -22,7 +22,7 @@ import EditAdminModal from "../components/EditAdminModal";
 import clsx from "clsx";
 
 export default function ClientsPage() {
-  const { user } = useUser();
+  const { user, loading: userLoading, sessionExpired } = useUser();
   const router = useRouter();
 
   const [deleting, setDeleting] = useState(false);
@@ -33,8 +33,8 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) router.push("/login");
-  }, [user, router]);
+    if (!userLoading && !user && !sessionExpired) router.push("/login");
+  }, [user, userLoading, sessionExpired, router]);
 
   const fetchClients = () => {
     if (user?.role !== "OWNER") return;
