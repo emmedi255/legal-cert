@@ -83,11 +83,13 @@ function SectionCard({
       <div
         className={`flex items-center gap-3 px-6 py-4 border-b border-gray-100 ${c.header}`}
       >
-        <div
-          className={`w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold ${c.badge}`}
-        >
-          {number}
-        </div>
+        {number && (
+          <div
+            className={`w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold ${c.badge}`}
+          >
+            {number}
+          </div>
+        )}
         <div className="w-5 h-5 flex items-center justify-center ">
           <Icon size={15} />
         </div>
@@ -1634,7 +1636,10 @@ export default function DataForm({
                     <InlineInput
                       value={form.sezione03.sicurezza.altro || ""}
                       onChange={(e) => {
-                        update(["sezione03", "sicurezza", "altro"], e.target.value);
+                        update(
+                          ["sezione03", "sicurezza", "altro"],
+                          e.target.value,
+                        );
                         if (!e.target.value)
                           update(["sezione03", "sicurezza", "isAltro"], false);
                       }}
@@ -1866,7 +1871,7 @@ export default function DataForm({
 
           {/* ── SEZ. 07.1.1 ── */}
           <SectionCard
-            number="07.1.1"
+            number="07.2"
             title="Ispettorato del Lavoro"
             icon={Briefcase}
             accentColor="amber"
@@ -1900,21 +1905,22 @@ export default function DataForm({
                   Autorizzazione richiesta
                 </span>
               </button>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
-                  Note
-                </label>
-                <textarea
-                  value={form.sezione0711?.note ?? ""}
-                  onChange={(e) =>
-                    update(["sezione0711", "note"], e.target.value)
-                  }
-                  placeholder="Note aggiuntive..."
-                  rows={3}
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm resize-none transition"
-                />
-              </div>
             </div>
+          </SectionCard>
+
+          {/* ── NOTE AGGIUNTIVE ── */}
+          <SectionCard
+            title="Note Aggiuntive"
+            icon={FileText}
+            accentColor="slate"
+          >
+            <textarea
+              value={form.sezione0711?.note ?? ""}
+              onChange={(e) => update(["sezione0711", "note"], e.target.value)}
+              placeholder="Note aggiuntive..."
+              rows={4}
+              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm resize-none transition"
+            />
           </SectionCard>
 
           {/* ── SEZ. 08 – FORNITORI ── */}
